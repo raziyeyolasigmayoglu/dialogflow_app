@@ -1,0 +1,11 @@
+framework module dialogflow_grpc {
+  umbrella header "dialogflow_grpc-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module dialogflow_grpc.Swift {
+    header "dialogflow_grpc-Swift.h"
+    requires objc
+}

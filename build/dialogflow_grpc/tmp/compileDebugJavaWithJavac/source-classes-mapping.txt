@@ -1,2 +1,0 @@
-com/leeboonstra/dialogflow_grpc/BuildConfig.java
- com.leeboonstra.dialogflow_grpc.BuildConfig
