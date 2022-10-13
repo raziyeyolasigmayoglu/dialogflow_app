@@ -6,10 +6,8 @@ import 'package:sound_stream/sound_stream.dart';
 import 'package:dialogflow_grpc/dialogflow_grpc.dart';
 import 'package:dialogflow_grpc/generated/google/cloud/dialogflow/v2beta1/session.pb.dart';
 
-// TODO import Dialogflow
-
 class Chat extends StatefulWidget {
-  Chat({Key? key}) : super(key: key);
+  const Chat({Key? key}) : super(key: key);
 
   @override
   _ChatState createState() => _ChatState();
@@ -19,14 +17,12 @@ class _ChatState extends State<Chat> {
   final List<ChatMessage> _messages = <ChatMessage>[];
   final TextEditingController _textController = TextEditingController();
 
-  bool _isRecording = false;
+  bool _isRecording = true;
 
-  RecorderStream _recorder = RecorderStream();
+  final RecorderStream _recorder = RecorderStream();
   late StreamSubscription _recorderStatus;
   late StreamSubscription<List<int>> _audioStreamSubscription;
   late BehaviorSubject<List<int>> _audioStream;
-
-  // TODO DialogflowGrpc class instance
 
   late DialogflowGrpcV2Beta1 dialogflow;
 
@@ -43,20 +39,20 @@ class _ChatState extends State<Chat> {
     super.dispose();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlugin() async {
     _recorderStatus = _recorder.status.listen((status) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isRecording = status == SoundStreamStatus.Playing;
         });
+      }
     });
 
     await Future.wait([_recorder.initialize()]);
 
     final serviceAccount = ServiceAccount.fromString(
-        '${(await rootBundle.loadString('assets/credentials.json'))}');
-    // Create a DialogflowGrpc Instance
+        (await rootBundle.loadString('assets/credentials.json')));
+
     dialogflow = DialogflowGrpcV2Beta1.viaServiceAccount(serviceAccount);
   }
 
@@ -111,7 +107,6 @@ class _ChatState extends State<Chat> {
       'HIPAA'
     ], boost: 20.0);
 
-    // See: https://cloud.google.com/dialogflow/es/docs/reference/rpc/google.cloud.dialogflow.v2#google.cloud.dialogflow.v2.InputAudioConfig
     var config = InputConfigV2beta1(
         encoding: 'AUDIO_ENCODING_LINEAR_16',
         languageCode: 'en-US',
@@ -122,11 +117,8 @@ class _ChatState extends State<Chat> {
     final responseStream =
         dialogflow.streamingDetectIntent(config, _audioStream);
 
-    // Get the transcript and detectedIntent and show on screen
     responseStream.listen((data) {
-      //print('----');
       setState(() {
-        //print(data);
         String transcript = data.recognitionResult.transcript;
         String queryText = data.queryResult.queryText;
         String fulfillmentText = data.queryResult.fulfillmentText;
@@ -152,31 +144,24 @@ class _ChatState extends State<Chat> {
           _textController.text = transcript;
         }
       });
-    }, onError: (e) {
-      //print(e);
-    }, onDone: () {
-      //print('done');
-    });
+    }, onError: (e) {}, onDone: () {});
   }
 
-  // The chat interface
-  //
-  //------------------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
       Flexible(
           child: ListView.builder(
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         reverse: true,
         itemBuilder: (_, int index) => _messages[index],
         itemCount: _messages.length,
       )),
-      Divider(height: 1.0),
+      const Divider(height: 1.0),
       Container(
           decoration: BoxDecoration(color: Theme.of(context).cardColor),
           child: IconTheme(
-            data: IconThemeData(color: Theme.of(context).accentColor),
+            data: IconThemeData(color: Theme.of(context).colorScheme.secondary),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
@@ -185,14 +170,14 @@ class _ChatState extends State<Chat> {
                     child: TextField(
                       controller: _textController,
                       onSubmitted: handleSubmitted,
-                      decoration:
-                          InputDecoration.collapsed(hintText: "Send a message"),
+                      decoration: const InputDecoration.collapsed(
+                          hintText: "Send a message"),
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: 4.0),
+                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: IconButton(
-                      icon: Icon(Icons.send),
+                      icon: const Icon(Icons.send),
                       onPressed: () => handleSubmitted(_textController.text),
                     ),
                   ),
@@ -209,12 +194,9 @@ class _ChatState extends State<Chat> {
   }
 }
 
-//------------------------------------------------------------------------------------
-// The chat message balloon
-//
-//------------------------------------------------------------------------------------
 class ChatMessage extends StatelessWidget {
-  ChatMessage({this.text, this.name, this.type});
+  const ChatMessage({Key? key, this.text, this.name, this.type})
+      : super(key: key);
 
   final String? text;
   final String? name;
@@ -222,15 +204,15 @@ class ChatMessage extends StatelessWidget {
 
   List<Widget> otherMessage(context) {
     return <Widget>[
-      new Container(
+      Container(
         margin: const EdgeInsets.only(right: 16.0),
-        child: CircleAvatar(child: new Text('B')),
+        child: const CircleAvatar(child: Text('B')),
       ),
-      new Expanded(
+      Expanded(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(this.name!, style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(name!, style: const TextStyle(fontWeight: FontWeight.bold)),
             Container(
               margin: const EdgeInsets.only(top: 5.0),
               child: Text(text!),
@@ -247,7 +229,7 @@ class ChatMessage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
-            Text(this.name!, style: Theme.of(context).textTheme.subtitle1),
+            Text(name!, style: Theme.of(context).textTheme.subtitle1),
             Container(
               margin: const EdgeInsets.only(top: 5.0),
               child: Text(text!),
@@ -259,8 +241,8 @@ class ChatMessage extends StatelessWidget {
         margin: const EdgeInsets.only(left: 16.0),
         child: CircleAvatar(
             child: Text(
-          this.name![0],
-          style: TextStyle(fontWeight: FontWeight.bold),
+          name![0],
+          style: const TextStyle(fontWeight: FontWeight.bold),
         )),
       ),
     ];
@@ -272,7 +254,7 @@ class ChatMessage extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: this.type! ? myMessage(context) : otherMessage(context),
+        children: type! ? myMessage(context) : otherMessage(context),
       ),
     );
   }
