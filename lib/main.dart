@@ -11,11 +11,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter Dialogflow Agent',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      home: const MyHomePage(title: 'Flutter Dialogflow Agent'),
+      home: const MyHomePage(title: 'Chat Bot'),
     );
   }
 }
@@ -36,6 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: const SafeArea(child: Chat()));
+        body: const SafeArea(
+            child: Padding(padding: EdgeInsets.all(5.0), child: Chat())));
   }
 }
